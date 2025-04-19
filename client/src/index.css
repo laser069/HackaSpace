@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* src/index.css */
+html {
+  transition: background-color 0.3s, color 0.3s;
+}
+
+body {
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Dark mode styling */
+.dark body {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+.dark a {
+  color: #bb86fc;
+}
