@@ -1,29 +1,52 @@
-// controllers/hackathonController.js
 const Hackathon = require('../models/Hackathon');
 
 // Create a new hackathon
 const createHackathon = async (req, res) => {
-  const { title, description, startDate, endDate, location } = req.body;
+  const { name, description, startDate, endDate } = req.body;
 
   try {
-    // Create a new Hackathon instance
     const newHackathon = new Hackathon({
-      title,
+      name,
       description,
       startDate,
       endDate,
-      location,
-      creator: req.user.id, // The creator's user ID
+      createdBy: req.user.id,
     });
 
-    // Save the new hackathon to the database
-    await newHackathon.save();
-
-    // Respond with success
-    res.status(201).json({ message: 'Hackathon created successfully', hackathon: newHackathon });
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to create hackathon', error });
+    const savedHackathon = await newHackathon.save();
+    res.status(201).json(savedHackathon);
+  } catch (err) {
+    console.error('Error creating hackathon:', err);
+    res.status(500).json({ message: 'Error creating hackathon', error: err.message });
   }
 };
 
-module.exports = { createHackathon };
+// Get all hackathons
+const getHackathons = async (req, res) => {
+  try {
+    const hackathons = await Hackathon.find();
+    res.json(hackathons);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching hackathons', error: err.message });
+  }
+};
+
+// ✅ Get a single hackathon by ID
+const getHackathonById = async (req, res) => {
+  try {
+    const hackathon = await Hackathon.findById(req.params.id);
+    if (!hackathon) {
+      return res.status(404).json({ message: 'Hackathon not found' });
+    }
+    res.json(hackathon);
+  } catch (err) {
+    console.error('Error fetching hackathon:', err);
+    res.status(500).json({ message: 'Error fetching hackathon', error: err.message });
+  }
+};
+
+module.exports = {
+  createHackathon,
+  getHackathons,
+  getHackathonById, // 👈 Don't forget to export it
+};

@@ -1,63 +1,57 @@
-import React from 'react';
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
+import AuthContext from '../context/authContext';
 
 const Login = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
-    const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
-    
-        try {
-          const response = await axios.post('http://localhost:5000/api/auth/login', {
-            email,
-            password,
-          });
-          
-          // If login is successful, save the token in localStorage and redirect
-          localStorage.setItem('token', response.data.token);
-          navigate('/dashboard'); // Redirect to dashboard after login
-        } catch (error) {
-          setErrorMessage('Invalid credentials or server error');
-        }
-      };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Send login request to the backend API
+      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      
+      // Assuming the response contains both the user data and token
+      const { user, token } = res.data;
+
+      // Store user and token in context and localStorage
+      login(user, token);
+
+      // Optionally, redirect to dashboard or another protected route
+      window.location.href = '/dashboard'; // Or use react-router's useNavigate for navigation
+
+    } catch (err) {
+      // Handle error and display error message
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+    }
+  };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white dark:bg-zinc-800 rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-4 text-center dark:text-white">Login</h2>
-      <form onSubmit={handleLogin}>
+    <div>
+      <form onSubmit={handleSubmit}>
         <input
           type="email"
-          placeholder="Email"
-          className="w-full p-3 border rounded dark:bg-zinc-700 dark:text-white"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
           required
         />
         <input
           type="password"
-          placeholder="Password"
-          className="w-full p-3 border rounded mt-4 dark:bg-zinc-700 dark:text-white"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
           required
         />
-        <button
-          type="submit"
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded mt-4"
-        >
-          Login
-        </button>
+        <button type="submit">Login</button>
       </form>
+
+      {error && <p style={{ color: 'red' }}>{error}</p>} {/* Display error in red */}
     </div>
   );
 };
 
 export default Login;
-
-
-

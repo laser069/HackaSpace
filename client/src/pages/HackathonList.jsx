@@ -1,22 +1,49 @@
-// src/pages/HackathonList.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
 
 const HackathonList = () => {
+  const [hackathons, setHackathons] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHackathons = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/hackathons");
+        setHackathons(res.data);
+      } catch (err) {
+        console.error("Failed to fetch hackathons:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHackathons();
+  }, []);
+
+  if (loading) return <p>Loading hackathons...</p>;
+
   return (
     <div>
-      <h1 className="text-3xl">Available Hackathons</h1>
-      <ul className="mt-6 space-y-4">
-        <li className="p-4 border rounded shadow">
-          <Link to="/hackathons/1" className="text-xl text-blue-600">Hackathon 1</Link>
-        </li>
-        <li className="p-4 border rounded shadow">
-          <Link to="/hackathons/2" className="text-xl text-blue-600">Hackathon 2</Link>
-        </li>
-        <li className="p-4 border rounded shadow">
-          <Link to="/hackathons/3" className="text-xl text-blue-600">Hackathon 3</Link>
-        </li>
-      </ul>
+      <h1 className="text-3xl mb-4">Available Hackathons</h1>
+      {hackathons.length === 0 ? (
+        <p>No hackathons available.</p>
+      ) : (
+        <ul className="space-y-4">
+          {hackathons.map((hackathon) => (
+            <li key={hackathon._id} className="p-4 border rounded shadow">
+              <Link to={`/hackathons/${hackathon._id}`} className="text-xl text-blue-600">
+                {hackathon.name}
+              </Link>
+              <p className="text-sm text-gray-600">{hackathon.description}</p>
+              <p className="text-sm text-gray-400">
+                {new Date(hackathon.startDate).toLocaleDateString()} →{" "}
+                {new Date(hackathon.endDate).toLocaleDateString()}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

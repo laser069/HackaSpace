@@ -1,96 +1,87 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    name: '',
+    username: '',
     email: '',
-    password: ''
+    password: '',
+    confirmPassword: '',
   });
 
   const [error, setError] = useState('');
 
+  const { username, email, password, confirmPassword } = formData;
+
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-  
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/register', formData);
-      console.log('API Response:', res);  // <-- Add this log
-  
-      if (res.data?.token) {
-        console.log("✅ Token received:", res.data.token);
-        localStorage.setItem('token', res.data.token);
-        navigate('/dashboard');
-      } else {
-        setError('Registration failed.');
-      }
+      const response = await axios.post('http://localhost:5000/api/auth/register', {
+        username,
+        email,
+        password,
+      });
+
+      // Save token in localStorage or handle authentication state
+      localStorage.setItem('token', response.data.token);
+
+      // Redirect to another page after successful registration
+      navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Something went wrong');
+      setError(err.response ? err.response.data.msg : 'Server error');
     }
   };
-  
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-      <div className="w-full max-w-md bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800 dark:text-white">Register</h2>
-
-        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="name"
-            placeholder="Full Name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:text-white"
-            required
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email Address"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:text-white"
-            required
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:text-white"
-            required
-          />
-
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-          >
-            Register
-          </button>
-        </form>
-
-        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-300">
-          Already have an account?{' '}
-          <a href="/login" className="text-blue-500 hover:underline">
-            Login here
-          </a>
-        </p>
-      </div>
+    <div>
+      <h2>Register</h2>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          name="username"
+          value={username}
+          onChange={handleChange}
+          placeholder="Username"
+        />
+        <input
+          type="email"
+          name="email"
+          value={email}
+          onChange={handleChange}
+          placeholder="Email"
+        />
+        <input
+          type="password"
+          name="password"
+          value={password}
+          onChange={handleChange}
+          placeholder="Password"
+        />
+        <input
+          type="password"
+          name="confirmPassword"
+          value={confirmPassword}
+          onChange={handleChange}
+          placeholder="Confirm Password"
+        />
+        <button type="submit">Register</button>
+      </form>
     </div>
   );
 };

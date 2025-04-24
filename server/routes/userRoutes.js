@@ -1,33 +1,26 @@
 // routes/userRoutes.js
 const express = require('express');
+const User = require('../models/User');
+const verifyToken = require('../middleware/authMiddleware');  // JWT token verification middleware
+const userController = require('../controllers/userController');
+const { searchUsers } = require('../controllers/userController');
+const {getAllUsers} = require("../controllers/userController")
 const router = express.Router();
-const { protect } = require('../middleware/authMiddleware'); // Protect routes by ensuring the user is authenticated
-const User = require('../models/user'); // User model for database operations
 
-// Get user profile (protected route)
-router.get('/profile', protect, async (req, res) => {
+
+router.get('/all', verifyToken, getAllUsers);
+// Fetch a user's sent messages
+router.get('/:userId/messages', async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password'); // Exclude password field
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: 'Error retrieving user profile', error });
+    const user = await User.findById(req.params.userId).populate('messagesSent');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    res.json(user.messagesSent);  // Return all messages the user has sent
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
-// Update user profile (protected route)
-router.put('/profile', protect, async (req, res) => {
-  const { name, email } = req.body;
-  
-  try {
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user.id,
-      { name, email },
-      { new: true, runValidators: true }
-    );
-    res.json(updatedUser);
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating user profile', error });
-  }
-});
-
+router.get('/profile', verifyToken, userController.getProfile);
+router.get('/search', verifyToken, searchUsers);
 module.exports = router;

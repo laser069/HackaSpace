@@ -1,51 +1,61 @@
-// src/App.jsx
-import React from "react";
-import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom"; // Importing React Router
-import Navbar from "./components/Navbar"; // Importing Navbar component
-import Home from "./pages/Home"; // Importing Home page
-import Login from "./pages/Login"; // Importing Login page
-import Register from "./pages/Register"; // Importing Register page
-import Dashboard from "./pages/Dashboard"; // Importing Dashboard page
-import HackathonList from "./pages/HackathonList"; // Importing HackathonList page
-import HackathonDetails from "./pages/HackathonDetails"; // Importing HackathonDetails page
-import TeamPage from "./pages/TeamPage"; // Importing TeamPage page
-import CreateHackathon from "./pages/CreateHackathon"; // Importing CreateHackathon page
-import NotFound from "./pages/NotFound"; // Importing NotFound page
+import React, { useState, useEffect, useContext } from "react";
+import { Route, Routes } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import HackathonList from "./pages/HackathonList";
+import HackathonDetails from "./pages/HackathonDetails";
+import TeamPage from "./pages/TeamPage";
+import CreateHackathon from "./pages/CreateHackathon";
+import NotFound from "./pages/NotFound";
+import GlobalChat from "./pages/GlobalChat";
+import Notifications from "./pages/Notifications";
+import AuthContext from './context/authContext';  // Import your AuthContext
+import FriendSearch from './pages/FriendSearch';
+import "./App.css";
 
 const App = () => {
   const [dark, setDark] = useState(false);
+  const { user, loading } = useContext(AuthContext);  // Access user from context
 
-  // Toggle Dark Mode on <html> tag
   useEffect(() => {
-    if (dark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
 
-  return (
-    <Router>
-      <div className="min-h-screen bg-white dark:bg-zinc-900 text-gray-900 dark:text-white">
-      <Navbar setDark={setDark} dark={dark} />
+  // If the user is loading, we show a loading spinner or message
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
-        <div className="p-6">
-          <Routes>
-            {/* Define the Routes for each page */}
-            <Route path="/" element={<Home setDark={setDark} dark={dark} />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/hackathons" element={<HackathonList />} />
-            <Route path="/hackathons/:id" element={<HackathonDetails />} />
-            <Route path="/teams" element={<TeamPage />} />
-            <Route path="/create-hackathon" element={<CreateHackathon />} />
-            <Route path="*" element={<NotFound />} /> {/* Catch-all route for 404 */}
-          </Routes>
-        </div>
+  return (
+    <div className="min-h-screen bg-white dark:bg-zinc-900 text-gray-900 dark:text-white">
+      <Navbar setDark={setDark} dark={dark} />
+      <div className="p-6">
+        <Routes>
+          <Route path="/" element={<Home setDark={setDark} dark={dark} />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/hackathons" element={<HackathonList />} />
+          <Route path="/hackathons/:id" element={<HackathonDetails />} />
+          <Route path="/teams" element={<TeamPage />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/create-hackathon" element={<CreateHackathon />} />
+          <Route path="/friends/search" element={<FriendSearch />} />
+          
+          {/* Global Chat Route */}
+          <Route 
+            path="/chat" 
+            element={user ? <GlobalChat user={user} /> : <div>Please log in to access the chat.</div>} 
+          />
+
+          {/* Not Found Route */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </div>
-    </Router>
+    </div>
   );
 };
 
